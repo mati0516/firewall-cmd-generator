@@ -1,7 +1,13 @@
 # firewall-cmd-generator
 
-A web-based interactive generator for **firewall-cmd** rules.  
-Supports service presets, custom ports, IP allowlists, JSON import/export, dark mode, and multi-language UI.
+A web-based interactive generator for **firewall-cmd** rules.
+
+---
+
+## 🌐 Live Demo  
+https://mati0516.github.io/firewall-cmd-generator/
+
+---
 
 ## 🚀 Features
 
@@ -13,5 +19,4 @@ Supports service presets, custom ports, IP allowlists, JSON import/export, dark 
 - Dark mode (auto + manual toggle)
 - Multilingual UI support
 
-## 📄 License
-This project is released under the MIT License.
+---
