@@ -20,3 +20,6 @@ https://mati0516.github.io/firewall-cmd-generator/
 - Multilingual UI support
 
 ---
+
+## 🔬 Experimental Analysis Feature  
+A prototype “analysis” function has been added, but it is still in an early experimental stage and most of its behavior is not fully implemented yet.
