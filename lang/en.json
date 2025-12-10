@@ -1,0 +1,50 @@
+{
+  "title": "firewall-cmd Command Generator",
+  "menu_language": "Language",
+
+  "import_section": "Import Current Settings",
+  "import_hint": "Run firewall-cmd --zone=public --list-all (or similar) on the server and paste the output here.",
+  "import_placeholder": "Paste the output of firewall-cmd --list-all.",
+
+  "parse_button": "Parse",
+
+  "zone_section": "Zone Settings",
+  "zone_public": "public (default)",
+  "zone_block": "block (reject)",
+  "zone_drop": "drop (drop silently)",
+  "zone_trusted": "trusted (allow all: unsafe)",
+
+  "opt_permanent": "Add --permanent",
+  "opt_reload": "Append firewall-cmd --reload at the end",
+  "opt_ipv6": "Assume IPv6 is used (comment only)",
+
+  "roles_section": "Server Roles",
+  "roles_hint": "You can change port numbers as needed. Ports in checked rows will be applied.",
+  "role_port_hint": "You can change the port number as needed.",
+
+  "role_web": "Web Server",
+  "service_http": "HTTP",
+  "service_https": "HTTPS",
+
+  "role_ssh": "SSH / SFTP",
+  "service_ssh": "SSH",
+
+  "allowlist_label": "Allow only these IPs (one per line)",
+  "allowlist_placeholder": "Examples:\n  203.0.113.10\n  198.51.100.0/24",
+
+  "detail_section": "Advanced Settings",
+  "custom_ports_label": "Additional Ports",
+  "custom_ports_placeholder": "Enter one port per line.\nExamples:\n  8080\n  3000/tcp\n  53/udp\nIf protocol is omitted, \"/tcp\" will be added automatically.",
+
+  "output_section": "Generated Commands",
+  "output_placeholder": "# Generated firewall-cmd commands will appear here.",
+
+  "generate": "Generate",
+  "copy": "Copy",
+  "reset": "Reset",
+  "download": "Download",
+  "upload": "Upload",
+  "download_title": "Save as filename",
+  "cancel": "Cancel",
+  "save": "Save"
+}

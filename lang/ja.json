@@ -1,0 +1,51 @@
+{
+  "title": "firewall-cmd コマンド生成ツール",
+  "menu_language": "言語",
+
+  "import_section": "現在の設定を読み込む",
+  "import_hint": "対象ゾーンで firewall-cmd --zone=public --list-all などを実行し、結果をそのまま貼り付けてください。",
+  "import_placeholder": "firewall-cmd --list-all の結果を貼り付けてください。",
+
+  "parse_button": "解析する",
+
+  "zone_section": "ゾーン設定",
+  "zone_public": "public（一般的）",
+  "zone_block": "block（拒否）",
+  "zone_drop": "drop（破棄）",
+  "zone_trusted": "trusted（全許可：危険）",
+
+  "opt_permanent": "--permanent を付与する",
+  "opt_reload": "最後に firewall-cmd --reload を追加する",
+  "opt_ipv6": "IPv6 を利用する前提にする（コメントのみ追加）",
+
+  "roles_section": "サーバの役割",
+  "roles_hint": "ポート番号は必要に応じて変更できます。チェックを入れた行のポートが有効になります。",
+  "role_port_hint": "ポート番号は必要に応じて変更できます。",
+
+  "role_web": "Web サーバ",
+  "service_http": "HTTP",
+  "service_https": "HTTPS",
+
+  "role_ssh": "SSH / SFTP",
+  "service_ssh": "SSH",
+
+  "allowlist_label": "この IP だけ許可（複数行）",
+  "allowlist_placeholder": "例:\n  203.0.113.10\n  198.51.100.0/24",
+
+  "detail_section": "詳細設定",
+  "custom_ports_label": "追加ポート",
+  "custom_ports_placeholder": "1 行につき 1 ポートを記述します。\n例：\n  8080\n  3000/tcp\n  53/udp\nプロトコルを省略した場合は自動で「/tcp」が付きます。",
+
+  "output_section": "出力コマンド",
+  "output_placeholder": "# ここに生成された firewall-cmd のコマンドが表示されます。",
+
+  "generate": "生成する",
+  "copy": "コピー",
+  "reset": "リセット",
+  "download": "ダウンロード",
+  "upload": "アップロード",
+  "download_title": "保存するファイル名",
+  "cancel": "キャンセル",
+  "save": "保存"
+
+}
