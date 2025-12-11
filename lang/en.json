@@ -1,50 +1,60 @@
 {
   "title": "firewall-cmd Command Generator",
   "menu_language": "Language",
-
   "import_section": "Import Current Settings",
   "import_hint": "Run firewall-cmd --zone=public --list-all (or similar) on the server and paste the output here.",
   "import_placeholder": "Paste the output of firewall-cmd --list-all.",
-
   "parse_button": "Parse",
-
+  "parse_confirm": "Parsing will overwrite the current UI values. Continue?",
+  "import_success": "Detected zone: {{zone}}.",
+  "import_failure": "Could not detect a zone.",
   "zone_section": "Zone Settings",
   "zone_public": "public (default)",
   "zone_block": "block (reject)",
   "zone_drop": "drop (drop silently)",
   "zone_trusted": "trusted (allow all: unsafe)",
-
   "opt_permanent": "Add --permanent",
   "opt_reload": "Append firewall-cmd --reload at the end",
   "opt_ipv6": "Assume IPv6 is used (comment only)",
-
   "roles_section": "Server Roles",
   "roles_hint": "You can change port numbers as needed. Ports in checked rows will be applied.",
   "role_port_hint": "You can change the port number as needed.",
-
   "role_web": "Web Server",
   "service_http": "HTTP",
   "service_https": "HTTPS",
-
   "role_ssh": "SSH / SFTP",
   "service_ssh": "SSH",
-
   "allowlist_label": "Allow only these IPs (one per line)",
   "allowlist_placeholder": "Examples:\n  203.0.113.10\n  198.51.100.0/24",
-
   "detail_section": "Advanced Settings",
   "custom_ports_label": "Additional Ports",
   "custom_ports_placeholder": "Enter one port per line.\nExamples:\n  8080\n  3000/tcp\n  53/udp\nIf protocol is omitted, \"/tcp\" will be added automatically.",
-
   "output_section": "Generated Commands",
   "output_placeholder": "# Generated firewall-cmd commands will appear here.",
-
   "generate": "Generate",
   "copy": "Copy",
+  "copy_success": "Copied!",
   "reset": "Reset",
+  "reset_confirm": "Reset to initial state?",
   "download": "Download",
   "upload": "Upload",
+  "upload_success": "Settings loaded.",
+  "upload_failure": "Failed to load settings.",
   "download_title": "Save as filename",
   "cancel": "Cancel",
-  "save": "Save"
+  "save": "Save",
+  "add_custom_port": "Add",
+  "remove": "Remove",
+  "ipv6_comment": "# Assuming IPv6 is used",
+  "web_https_ipv4": "Web (HTTPS - IPv4)",
+  "web_https_ipv6": "Web (HTTPS - IPv6)",
+  "web_https_ipv6_note": "Allowed IPs (IPv6 only / empty = allow all)",
+  "web_https_ipv4_note": "Allowed IPs (IPv4 only / one per line)",
+  "ssh_title": "SSH",
+  "ssh_note": "Allowed IPs (one per line)",
+  "server_roles_title": "Server Roles",
+  "server_roles_description": "Configure HTTPS (IPv4/IPv6) and SSH allowed IPs.",
+  "advanced_settings_title": "Advanced Settings",
+  "advanced_settings_portopen_title": "Custom Port Opening",
+  "advanced_settings_portopen_description": "Enter port number, protocol, and allowed IPs."
 }

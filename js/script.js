@@ -1,4 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
+  const translate = (key, fallback = "", vars = {}) =>
+    (window.t ? window.t(key, fallback, vars) : fallback || key);
+
   const zoneTabs = document.querySelectorAll(".zone-tab");
   const zoneInput = document.getElementById("zoneInput");
 
@@ -9,10 +12,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const permanentCheckbox = document.getElementById("permanent");
   const reloadCheckbox = document.getElementById("reload");
-  const ipv6Checkbox = document.getElementById("ipv6");
 
-  const rolesContainer = document.getElementById("rolesContainer");
-  const customPortsTextarea = document.getElementById("customPorts");
+  const httpsIpv4EnabledCheckbox = document.getElementById("httpsIpv4Enabled");
+  const httpsIpv4AllowedIPsTextarea = document.getElementById("httpsIpv4AllowedIPs");
+  const httpsIpv6EnabledCheckbox = document.getElementById("httpsIpv6Enabled");
+  const httpsIpv6AllowedIPsTextarea = document.getElementById("httpsIpv6AllowedIPs");
+  const sshEnabledCheckbox = document.getElementById("sshEnabled");
+  const sshAllowedIPsTextarea = document.getElementById("sshAllowedIPs");
+  const customPortsList = document.getElementById("customPortsList");
+  const addCustomPortBtn = document.getElementById("addCustomPortBtn");
 
   const outputTextarea = document.getElementById("output");
   const generateBtn = document.getElementById("generateBtn");
@@ -33,7 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const themeToggle = document.getElementById("themeToggle");
 
   /* ================================
-     テーマ
+      テーマ
   =================================*/
   function setTheme(theme) {
     document.documentElement.setAttribute("data-theme", theme);
@@ -46,8 +54,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (saved === "light" || saved === "dark") {
       setTheme(saved);
     } else {
-      const prefersDark = window.matchMedia &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
       setTheme(prefersDark ? "dark" : "light");
     }
   }
@@ -60,7 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initTheme();
 
   /* ================================
-     ゾーンタブ
+      ゾーンタブ
   =================================*/
   function selectZoneTab(zone) {
     let hit = false;
@@ -75,9 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!hit) {
       zone = "public";
-      zoneTabs.forEach((tab) =>
-        tab.classList.toggle("active", tab.dataset.zone === "public")
-      );
+      zoneTabs.forEach((tab) => tab.classList.toggle("active", tab.dataset.zone === "public"));
     }
     zoneInput.value = zone;
   }
@@ -87,124 +92,91 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   /* ================================
-     ロール UI 生成
+      共通ヘルパー
   =================================*/
-  function buildRolesUI() {
-    rolesContainer.innerHTML = "";
-
-    Object.entries(ROLE_DEFINITION).forEach(([roleKey, roleDef]) => {
-      const box = document.createElement("div");
-      box.className = "role-box";
-      box.dataset.role = roleKey;
-
-      const title = document.createElement("div");
-      title.className = "role-title";
-      title.dataset.i18n = roleDef.labelKey;
-      title.textContent = roleDef.labelKey;
-      box.appendChild(title);
-
-      const hint = document.createElement("div");
-      hint.className = "role-port-hint";
-      hint.dataset.i18n = "role_port_hint";
-      hint.textContent = "ポート番号は必要に応じて変更できます。";
-      box.appendChild(hint);
-
-      const servicesWrapper = document.createElement("div");
-      servicesWrapper.className = "role-services";
-
-      Object.entries(roleDef.services).forEach(([srvKey, srv]) => {
-        const row = document.createElement("div");
-        row.className = "role-service";
-        row.dataset.role = roleKey;
-        row.dataset.service = srvKey;
-
-        const label = document.createElement("label");
-        label.className = "service-label";
-
-        const chk = document.createElement("input");
-        chk.type = "checkbox";
-        chk.checked = srv.defaultEnabled;
-        chk.dataset.role = roleKey;
-        chk.dataset.service = srvKey;
-
-        const span = document.createElement("span");
-        span.dataset.i18n = srv.labelKey;
-        span.textContent = srv.labelKey;
-
-        label.appendChild(chk);
-        label.appendChild(span);
-
-        const portInput = document.createElement("input");
-        portInput.type = "text";
-        portInput.value = srv.defaultPort;
-        portInput.dataset.role = roleKey;
-        portInput.dataset.service = srvKey;
-
-        row.appendChild(label);
-        row.appendChild(portInput);
-        servicesWrapper.appendChild(row);
-
-        function updateRowActive() {
-          row.classList.toggle("active", chk.checked);
-        }
-        updateRowActive();
-        chk.addEventListener("change", updateRowActive);
-
-        label.addEventListener("click", (e) => {
-          e.preventDefault(); // ← label が勝手に checkbox を操作するのを止める
-        });
-
-        row.addEventListener("click", (e) => {
-          const chk = row.querySelector('input[type="checkbox"]');
-          const portInput = row.querySelector('input[type="text"]');
-
-          // ① ポート入力欄をクリックしたときは何もしない
-          if (e.target === portInput) return;
-
-          // ② チェックボックスを直接押したときはブラウザの動作に任せる
-          if (e.target === chk) return;
-
-          // ③ それ以外（行・ラベル・サービス名など）のクリックで切り替え
-          chk.checked = !chk.checked;
-
-          // ④ 見た目更新
-          row.classList.toggle("active", chk.checked);
-        });
-
-      });
-
-      box.appendChild(servicesWrapper);
-
-      if (roleDef.allowlist) {
-        const allowBlock = document.createElement("div");
-        allowBlock.className = "allowlist-block";
-
-        const lbl = document.createElement("div");
-        lbl.className = "allowlist-label";
-        lbl.dataset.i18n = "allowlist_label";
-        lbl.textContent = "この IP だけ許可（複数行）";
-
-        const ta = document.createElement("textarea");
-        ta.className = "allowlist-textarea";
-        ta.id = `allowlist-${roleKey}`;
-        ta.dataset.i18nPlaceholder = "allowlist_placeholder";
-        ta.placeholder = "例:\n  203.0.113.10\n  198.51.100.0/24";
-
-        allowBlock.appendChild(lbl);
-        allowBlock.appendChild(ta);
-        box.appendChild(allowBlock);
-      }
-
-      rolesContainer.appendChild(box);
-    });
-
-    if (window.applyTranslations) window.applyTranslations();
+  function splitLines(text) {
+    return String(text || "")
+      .split(/\r?\n/)
+      .map((l) => l.trim())
+      .filter((l) => l);
   }
 
-  buildRolesUI();
+  function createCustomPortRow(data = {}) {
+    const row = document.createElement("div");
+    row.className = "custom-port-row";
+
+    const grid = document.createElement("div");
+    grid.className = "custom-port-grid";
+
+    const portWrap = document.createElement("label");
+    portWrap.textContent = "Port";
+    const portInput = document.createElement("input");
+    portInput.type = "number";
+    portInput.min = "1";
+    portInput.max = "65535";
+    portInput.value = data.port || "";
+    portInput.className = "custom-port-port";
+    portWrap.appendChild(portInput);
+
+    const protoWrap = document.createElement("label");
+    protoWrap.textContent = "Protocol";
+    const protoSelect = document.createElement("select");
+    protoSelect.className = "custom-port-protocol";
+    ["tcp", "udp"].forEach((opt) => {
+      const o = document.createElement("option");
+      o.value = opt;
+      o.textContent = opt;
+      protoSelect.appendChild(o);
+    });
+    protoSelect.value = data.protocol === "udp" ? "udp" : "tcp";
+    protoWrap.appendChild(protoSelect);
+
+    grid.appendChild(portWrap);
+    grid.appendChild(protoWrap);
+
+    const ips = document.createElement("textarea");
+    ips.className = "custom-port-ips";
+    ips.placeholder = "203.0.113.10\n198.51.100.0/24";
+    ips.value = (data.allowedIPs || []).join("\n");
+
+    const actions = document.createElement("div");
+    actions.className = "custom-port-actions";
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.className = "btn-secondary remove-port-btn";
+    removeBtn.setAttribute("data-i18n", "remove");
+    removeBtn.textContent = translate("remove", "削除");
+    removeBtn.addEventListener("click", () => {
+      row.remove();
+    });
+    actions.appendChild(removeBtn);
+
+    row.appendChild(grid);
+    row.appendChild(ips);
+    row.appendChild(actions);
+
+    return row;
+  }
+
+  function addCustomPortRow(data = {}) {
+    const row = createCustomPortRow(data);
+    customPortsList.appendChild(row);
+    return row;
+  }
+
+  function renderCustomPorts(list) {
+    customPortsList.innerHTML = "";
+    if (Array.isArray(list) && list.length > 0) {
+      list.forEach((item) => addCustomPortRow(item));
+    } else {
+      addCustomPortRow();
+    }
+  }
+
+  addCustomPortBtn.addEventListener("click", () => addCustomPortRow());
 
   /* ================================
-     設定読み込み
+      貼り付けエリア
   =================================*/
   pasteArea.addEventListener("input", () => {
     parseBtn.disabled = pasteArea.value.trim().length === 0;
@@ -217,165 +189,248 @@ document.addEventListener("DOMContentLoaded", () => {
     importStatus.textContent = "";
   });
 
-  function parseFirewallListAll(text) {
-    const zoneMatch = text.match(/^(\S+)\s*\(active\)/m);
-    const zone = zoneMatch ? zoneMatch[1] : null;
-    return { zone };
+  /* ================================
+      UI 反映 / 収集
+  =================================*/
+  function applyFirewallModelToUI(model) {
+    if (!model) return;
+
+    if (model.httpsIpv4) {
+      httpsIpv4EnabledCheckbox.checked = !!model.httpsIpv4.enabled;
+      const allowed4 = Array.isArray(model.httpsIpv4.allowed) ? model.httpsIpv4.allowed : model.httpsIpv4.allowedIPs || [];
+      httpsIpv4AllowedIPsTextarea.value = allowed4.join("\n");
+    }
+
+    if (model.httpsIpv6) {
+      httpsIpv6EnabledCheckbox.checked = !!model.httpsIpv6.enabled;
+      const allowed6 = Array.isArray(model.httpsIpv6.allowed) ? model.httpsIpv6.allowed : model.httpsIpv6.allowedIPs || [];
+      httpsIpv6AllowedIPsTextarea.value = allowed6.join("\n");
+    }
+
+    if (model.ssh) {
+      sshEnabledCheckbox.checked = !!model.ssh.enabled;
+      sshAllowedIPsTextarea.value = (model.ssh.allowedIPs || []).join("\n");
+    }
+
+    renderCustomPorts(model.customPorts || []);
   }
 
+  function collectFirewallModelFromUI() {
+    return {
+      httpsIpv4: {
+        enabled: !!httpsIpv4EnabledCheckbox.checked,
+        allowed: splitLines(httpsIpv4AllowedIPsTextarea.value)
+      },
+      httpsIpv6: {
+        enabled: !!httpsIpv6EnabledCheckbox.checked,
+        allowed: splitLines(httpsIpv6AllowedIPsTextarea.value)
+      },
+      ssh: {
+        enabled: !!sshEnabledCheckbox.checked,
+        allowedIPs: splitLines(sshAllowedIPsTextarea.value)
+      },
+      customPorts: Array.from(customPortsList.querySelectorAll(".custom-port-row")).map((row) => {
+        const portInput = row.querySelector(".custom-port-port");
+        const protoSelect = row.querySelector(".custom-port-protocol");
+        const ipsTextarea = row.querySelector(".custom-port-ips");
+
+        const port = parseInt(portInput?.value, 10);
+        const protocol = protoSelect?.value === "udp" ? "udp" : "tcp";
+        const allowedIPs = splitLines(ipsTextarea?.value || "");
+
+        if (!Number.isFinite(port) || port <= 0) return null;
+        return { port, protocol, allowedIPs };
+      }).filter(Boolean)
+    };
+  }
+
+  function legacyToModel(cfg) {
+    const source = cfg && cfg.firewall ? cfg.firewall : cfg;
+    const alreadyNewShape = source?.httpsIpv4 || source?.httpsIpv6;
+
+    const toArray = (val) => (Array.isArray(val) ? val : []);
+    if (alreadyNewShape) {
+      return {
+        httpsIpv4: {
+          enabled: !!source.httpsIpv4?.enabled,
+          allowed: toArray(source.httpsIpv4?.allowed || source.httpsIpv4?.allowedIPs)
+        },
+        httpsIpv6: {
+          enabled: !!source.httpsIpv6?.enabled,
+          allowed: toArray(source.httpsIpv6?.allowed || source.httpsIpv6?.allowedIPs)
+        },
+        ssh: {
+          enabled: !!source.ssh?.enabled,
+          allowedIPs: toArray(source.ssh?.allowedIPs)
+        },
+        customPorts: Array.isArray(source.customPorts) ? source.customPorts : []
+      };
+    }
+
+    const legacyCustomPorts = Array.isArray(source?.customPorts) ? source.customPorts : [];
+    const toPort = (token) => {
+      const normalized = typeof window.normalizePort === "function" ? window.normalizePort(token) : String(token);
+      const m = normalized.match(/^(\d+)(?:\/(tcp|udp))$/i);
+      if (!m) return null;
+      return { port: parseInt(m[1], 10), protocol: m[2].toLowerCase(), allowedIPs: [] };
+    };
+
+    const webRole = source?.roles?.web;
+    const sshRole = source?.roles?.ssh;
+    const flatWeb = source?.web;
+    const flatSsh = source?.ssh;
+    const nestedWeb = flatWeb && (flatWeb.http || flatWeb.https) ? flatWeb : null;
+
+    const httpsAllowedFromNested = toArray(nestedWeb?.https?.allowed || nestedWeb?.https?.allowedIPs);
+    const httpsAllowedFromFlat = Array.isArray(flatWeb?.allowedIPs) ? flatWeb.allowedIPs : [];
+    const httpsAllowlistFromRole = Array.isArray(webRole?.allowlist) ? webRole.allowlist : [];
+    const httpsAllowedIpv6FromNested = toArray(
+      nestedWeb?.https?.allowedIPv6 || nestedWeb?.https?.allowed || nestedWeb?.https?.allowedIPs
+    );
+    const httpsAllowedIpv6FromFlat = Array.isArray(flatWeb?.allowedIPv6) ? flatWeb.allowedIPv6 : [];
+
+    const resolvedHttpsAllowed =
+      toArray(httpsAllowedFromNested).length > 0
+        ? toArray(httpsAllowedFromNested)
+        : toArray(httpsAllowedFromFlat).length > 0
+          ? toArray(httpsAllowedFromFlat)
+          : toArray(httpsAllowlistFromRole);
+
+    const resolvedIpv6Allowed =
+      httpsAllowedIpv6FromNested.length > 0
+        ? httpsAllowedIpv6FromNested
+        : httpsAllowedIpv6FromFlat;
+
+    const resolvedIpv6Enabled =
+      !!(nestedWeb?.https?.ipv6Enabled || flatWeb?.ipv6Enabled) || resolvedIpv6Allowed.length > 0;
+    const resolvedHttpsEnabled =
+      nestedWeb?.https?.enabled !== undefined
+        ? !!nestedWeb.https.enabled
+        : flatWeb?.enabled !== undefined
+          ? !!flatWeb.enabled
+          : !!(webRole?.services?.https?.enabled);
+
+    return {
+      httpsIpv4: {
+        enabled: resolvedHttpsEnabled,
+        allowed: resolvedHttpsAllowed
+      },
+      httpsIpv6: {
+        enabled: resolvedIpv6Enabled,
+        allowed: resolvedIpv6Allowed
+      },
+      ssh: {
+        enabled: flatSsh?.enabled !== undefined ? !!flatSsh.enabled : !!(sshRole?.services?.ssh?.enabled),
+        allowedIPs: Array.isArray(flatSsh?.allowedIPs)
+          ? flatSsh.allowedIPs
+          : Array.isArray(sshRole?.allowlist)
+            ? sshRole.allowlist
+            : []
+      },
+      customPorts: legacyCustomPorts.map(toPort).filter(Boolean)
+    };
+  }
+
+  function collectConfigFromUI() {
+    return {
+      zone: zoneInput.value,
+      options: {
+        permanent: permanentCheckbox.checked,
+        reload: reloadCheckbox.checked
+      },
+      firewall: collectFirewallModelFromUI()
+    };
+  }
+
+  function applyConfigToUI(cfg) {
+    if (!cfg) return;
+    if (cfg.zone) selectZoneTab(cfg.zone);
+
+    permanentCheckbox.checked = !!cfg.options?.permanent;
+    reloadCheckbox.checked = !!cfg.options?.reload;
+
+    if (cfg.firewall || cfg.roles || cfg.customPorts || cfg.web || cfg.httpsIpv4 || cfg.httpsIpv6) {
+      const model = legacyToModel(cfg);
+      applyFirewallModelToUI(model);
+    }
+
+    if (window.applyTranslations) window.applyTranslations();
+  }
+
+  /* ================================
+      解析ボタン
+  =================================*/
   parseBtn.addEventListener("click", () => {
     const raw = pasteArea.value.trim();
     if (!raw) return;
 
-    if (!confirm("解析すると現在の UI に反映されます。よかですか？")) return;
+    if (!confirm(translate("parse_confirm", "解析すると現在の UI に反映されます。よろしいですか？"))) {
+      return;
+    }
 
-    const state = parseFirewallListAll(raw);
-    if (state.zone) {
-      selectZoneTab(state.zone);
-      importStatus.textContent = `${state.zone} ゾーンを検出しました。`;
+    if (typeof window.parseFirewall !== "function") {
+      importStatus.textContent = translate("import_failure", "パーサーが読み込めませんでした。");
+      return;
+    }
+
+    const parsed = window.parseFirewall(raw);
+    applyFirewallModelToUI(parsed);
+    if (parsed.zone) selectZoneTab(parsed.zone);
+
+    if (parsed) {
+      const zoneName = parsed.zone || zoneInput.value || "public";
+      importStatus.textContent = translate("import_success", `${zoneName} の設定を反映しました`, {
+        zone: zoneName
+      });
     } else {
-      importStatus.textContent = "ゾーンを検出できませんでした。";
+      importStatus.textContent = translate("import_failure", "解析に失敗しました。");
     }
   });
 
   /* ================================
-     UI → 設定オブジェクト
-  =================================*/
-  function splitLines(text) {
-    return String(text || "")
-      .split(/\r?\n/)
-      .map((l) => l.trim())
-      .filter((l) => l);
-  }
-
-  function collectConfigFromUI() {
-    const config = {
-      zone: zoneInput.value,
-      options: {
-        permanent: permanentCheckbox.checked,
-        reload: reloadCheckbox.checked,
-        ipv6: ipv6Checkbox.checked
-      },
-      roles: {},
-      customPorts: splitLines(customPortsTextarea.value)
-    };
-
-    Object.entries(ROLE_DEFINITION).forEach(([roleKey, roleDef]) => {
-      const roleCfg = { services: {}, allowlist: [] };
-
-      Object.keys(roleDef.services).forEach((srvKey) => {
-        const row = document.querySelector(
-          `.role-service[data-role="${roleKey}"][data-service="${srvKey}"]`
-        );
-        const chk = row.querySelector('input[type="checkbox"]');
-        const port = row.querySelector('input[type="text"]');
-
-        roleCfg.services[srvKey] = {
-          enabled: chk.checked,
-          port: port.value.trim()
-        };
-      });
-
-      if (roleDef.allowlist) {
-        const ta = document.getElementById(`allowlist-${roleKey}`);
-        roleCfg.allowlist = splitLines(ta.value);
-      }
-
-      config.roles[roleKey] = roleCfg;
-    });
-
-    return config;
-  }
-
-  /* ================================
-     コマンド生成
+      生成 / 操作
   =================================*/
   function generateCommands(cfg) {
-    const base = ["firewall-cmd"];
-    if (cfg.options.permanent) base.push("--permanent");
-    base.push(`--zone=${cfg.zone}`);
-
-    const cmds = [];
-
-    if (cfg.options.ipv6) {
-      cmds.push("# IPv6 を利用する前提です");
-    }
-
-    function addPort(port) {
-      const np = normalizePort(port);
-      if (np) cmds.push(`${base.join(" ")} --add-port=${np}`);
-    }
-
-    function addRich(roleCfg) {
-      if (!roleCfg.allowlist.length) return;
-
-      Object.values(roleCfg.services).forEach((srv) => {
-        if (!srv.enabled) return;
-
-        const np = normalizePort(srv.port);
-        if (!np) return;
-        const [port, proto] = np.split("/");
-
-        roleCfg.allowlist.forEach((addr) => {
-          const rule = `rule family="ipv4" source address="${addr}" port port="${port}" protocol="${proto}" accept`;
-          cmds.push(`${base.join(" ")} --add-rich-rule='${rule}'`);
-        });
-      });
-    }
-
-    Object.values(cfg.roles).forEach((r) => {
-      if (r.allowlist.length) {
-        addRich(r);
-      } else {
-        Object.values(r.services).forEach((srv) => {
-          if (srv.enabled) addPort(srv.port);
-        });
-      }
+    if (typeof window.generateFirewallCommands !== "function") return "";
+    return window.generateFirewallCommands(cfg.firewall, {
+      zone: cfg.zone,
+      permanent: cfg.options.permanent,
+      reload: cfg.options.reload
     });
-
-    cfg.customPorts.forEach(addPort);
-
-    if (cfg.options.reload) cmds.push("firewall-cmd --reload");
-
-    return cmds.join("\n");
   }
 
   generateBtn.addEventListener("click", () => {
     outputTextarea.value = generateCommands(collectConfigFromUI());
   });
 
-  /* ================================
-     コピー
-  =================================*/
   copyBtn.addEventListener("click", () => {
     if (!outputTextarea.value) return;
     navigator.clipboard.writeText(outputTextarea.value);
-    alert("コピーしました！");
+    alert(translate("copy_success", "コピーしました。"));
   });
 
-  /* ================================
-     全部リセット
-  =================================*/
   clearAllBtn.addEventListener("click", () => {
-    if (!confirm("初期状態に戻しますか？")) return;
+    if (!confirm(translate("reset_confirm", "初期状態に戻しますか？"))) return;
 
     selectZoneTab("public");
     permanentCheckbox.checked = true;
     reloadCheckbox.checked = true;
-    ipv6Checkbox.checked = false;
+    httpsIpv4EnabledCheckbox.checked = true;
+    httpsIpv4AllowedIPsTextarea.value = "";
+    httpsIpv6EnabledCheckbox.checked = false;
+    httpsIpv6AllowedIPsTextarea.value = "";
+    sshEnabledCheckbox.checked = true;
+    sshAllowedIPsTextarea.value = "";
+    renderCustomPorts([]);
 
-    buildRolesUI();
-    customPortsTextarea.value = "";
     outputTextarea.value = "";
   });
 
   /* ================================
-     ダウンロード処理
+      ダウンロード / アップロード
   =================================*/
   function downloadConfig(cfg, filename) {
-    const blob = new Blob([JSON.stringify(cfg, null, 2)], {
-      type: "application/json"
-    });
+    const blob = new Blob([JSON.stringify(cfg, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
 
@@ -417,17 +472,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // ❗既存イベント削除のためクローンして置換
-  downloadBtn.replaceWith(downloadBtn.cloneNode(true));
-  const fixedDownloadBtn = document.getElementById("downloadBtn");
-
-  fixedDownloadBtn.addEventListener("click", () => {
+  downloadBtn.addEventListener("click", () => {
     openDownloadModal();
   });
 
-  /* ================================
-     アップロード
-  =================================*/
   uploadBtn.addEventListener("click", () => uploadInput.click());
 
   uploadInput.addEventListener("change", (e) => {
@@ -441,49 +489,21 @@ document.addEventListener("DOMContentLoaded", () => {
       try {
         const cfg = JSON.parse(ev.target.result);
         applyConfigToUI(cfg);
-        uploadStatus.textContent = "設定を読み込みました。";
+        uploadStatus.textContent = translate("upload_success", "設定を読み込みました。");
       } catch {
-        uploadStatus.textContent = "読み込みに失敗しました。";
+        uploadStatus.textContent = translate("upload_failure", "読み込みに失敗しました。");
       }
     };
     reader.readAsText(file, "utf-8");
   });
 
-  function applyConfigToUI(cfg) {
-    if (cfg.zone) selectZoneTab(cfg.zone);
+  /* ================================
+      初期化
+  =================================*/
+  httpsIpv4EnabledCheckbox.checked = true;
+  httpsIpv6EnabledCheckbox.checked = false;
+  sshEnabledCheckbox.checked = true;
+  renderCustomPorts([]);
 
-    permanentCheckbox.checked = !!cfg.options?.permanent;
-    reloadCheckbox.checked = !!cfg.options?.reload;
-    ipv6Checkbox.checked = !!cfg.options?.ipv6;
-
-    Object.entries(ROLE_DEFINITION).forEach(([roleKey, roleDef]) => {
-      const roleCfg = cfg.roles?.[roleKey];
-
-      Object.entries(roleDef.services).forEach(([srvKey, srv]) => {
-        const row = document.querySelector(
-          `.role-service[data-role="${roleKey}"][data-service="${srvKey}"]`
-        );
-
-        const chk = row.querySelector('input[type="checkbox"]');
-        const port = row.querySelector('input[type="text"]');
-        const saved = roleCfg?.services?.[srvKey];
-
-        chk.checked = saved ? saved.enabled : srv.defaultEnabled;
-        port.value = saved ? saved.port : srv.defaultPort;
-
-        row.classList.toggle("active", chk.checked);
-      });
-
-      if (roleDef.allowlist) {
-        const ta = document.getElementById(`allowlist-${roleKey}`);
-        if (ta && roleCfg?.allowlist) {
-          ta.value = roleCfg.allowlist.join("\n");
-        }
-      }
-    });
-
-    customPortsTextarea.value = (cfg.customPorts || []).join("\n");
-
-    if (window.applyTranslations) window.applyTranslations();
-  }
+  if (window.applyTranslations) window.applyTranslations();
 });

@@ -87,6 +87,11 @@ body {
   background: transparent;
   font-size: 1.2rem;
   cursor: pointer;
+  color: #000000;
+}
+
+:root[data-theme="dark"] .theme-toggle {
+  color: #ffffff;
 }
 
 /* Layout */
@@ -170,7 +175,9 @@ h2 {
 /* textarea, input */
 
 textarea,
-input[type="text"] {
+input[type="text"],
+input[type="number"],
+select {
   width: 100%;
   border-radius: 10px;
   border: 1px solid var(--border-color);
@@ -179,8 +186,7 @@ input[type="text"] {
   background: var(--input-bg);
   color: var(--text-color);
   outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease,
-    background 0.15s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
 
 textarea {
@@ -191,10 +197,36 @@ textarea {
 }
 
 textarea:focus,
-input[type="text"]:focus {
+input[type="text"]:focus,
+input[type="number"]:focus,
+select:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 2px var(--accent-soft);
   background: #ffffff0d;
+}
+
+select {
+  min-height: 32px;
+}
+
+:root[data-theme="dark"] select {
+  background-color: #2c2f36;
+  color: #ffffff;
+  border-color: #555555;
+}
+
+:root[data-theme="dark"] select:hover {
+  background-color: #363a42;
+}
+
+:root[data-theme="dark"] select:focus {
+  border-color: #7a7a7a;
+  box-shadow: 0 0 0 2px rgba(122, 122, 122, 0.35);
+}
+
+:root[data-theme="dark"] select option {
+  background-color: #2c2f36;
+  color: #ffffff;
 }
 
 /* Actions / buttons */
@@ -306,6 +338,53 @@ input[type="text"]:focus {
   min-height: 80px;
 }
 
+/* Feature blocks */
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 10px;
+}
+
+.feature-block {
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.01);
+}
+
+.feature-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.toggle-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.feature-header .toggle-line input[type="checkbox"] {
+  margin: 0;
+}
+
+.feature-chip {
+  font-size: 0.8rem;
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  background: var(--accent-soft);
+  color: var(--text-color);
+}
+
+.feature-body {
+  margin-top: 8px;
+}
+
 /* Status */
 
 .status-text {
@@ -318,6 +397,54 @@ input[type="text"]:focus {
   justify-content: space-between;
   gap: 8px;
   margin-top: 6px;
+}
+
+/* Custom ports */
+
+.custom-port-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.custom-port-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.custom-port-row {
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.custom-port-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+  align-items: center;
+}
+
+.custom-port-ips {
+  margin-top: 8px;
+  min-height: 80px;
+}
+
+.custom-port-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.remove-port-btn {
+  background: var(--danger-soft);
+  color: var(--danger);
+  border: 1px solid var(--danger);
 }
 
 /* details / summary */

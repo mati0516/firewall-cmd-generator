@@ -8,6 +8,12 @@
   <script src="js/i18n.js" defer></script>
   <script src="js/port-normalizer.js" defer></script>
   <script src="js/role-config.js" defer></script>
+  <script src="js/parser/utils.js" defer></script>
+  <script src="js/parser/parseServices.js" defer></script>
+  <script src="js/parser/parsePorts.js" defer></script>
+  <script src="js/parser/parseRichRules.js" defer></script>
+  <script src="js/parser/parseFirewall.js" defer></script>
+  <script src="js/generator.js" defer></script>
   <script src="js/script.js" defer></script>
 </head>
 <body>
@@ -17,48 +23,49 @@
     </div>
     <div class="topbar-right">
       <div class="lang-switch">
-        <label for="langSelect" class="lang-label" data-i18n="menu_language">言語</label>
+        <label for="langSelect" class="lang-label" data-i18n="menu_language">Language</label>
         <select id="langSelect">
           <option value="ja">日本語</option>
           <option value="en">English</option>
+          <option value="zh_CN">简体中文</option>
+          <option value="es">Español</option>
+          <option value="hi">हिन्दी</option>
+          <option value="ar">العربية</option>
+          <option value="pt">Português</option>
+          <option value="fr">Français</option>
+          <option value="de">Deutsch</option>
+          <option value="it">Italiano</option>
+          <option value="pl">Polski</option>
+          <option value="nl">Nederlands</option>
+          <option value="sv">Svenska</option>
+          <option value="cs">Čeština</option>
+          <option value="el">Ελληνικά</option>
+          <option value="ko">한국어</option>
         </select>
       </div>
-      <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle theme">
-        🌙
-      </button>
+      <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌙</button>
     </div>
   </header>
 
   <main class="container">
-    <!-- 設定読み込み（折りたたみ） -->
     <section class="card">
       <details id="importSection">
         <summary data-i18n="import_section">現在の設定を読み込む</summary>
-
         <p class="hint" data-i18n="import_hint">
           対象ゾーンで firewall-cmd --zone=public --list-all などを実行し、結果をそのまま貼り付けてください。
         </p>
-
         <textarea
           id="pasteArea"
           data-i18n-placeholder="import_placeholder"
-          placeholder="firewall-cmd --list-all の結果を貼り付けてください。"
-        ></textarea>
-
+          placeholder="firewall-cmd --list-all の結果を貼り付けてください"></textarea>
         <div class="actions">
-          <button id="parseBtn" class="btn-primary" type="button" disabled data-i18n="parse_button">
-            解析する
-          </button>
-          <button id="clearPasteBtn" class="btn-secondary" type="button" data-i18n="reset">
-            リセット
-          </button>
+          <button id="parseBtn" class="btn-primary" type="button" disabled data-i18n="parse_button">解析する</button>
+          <button id="clearPasteBtn" class="btn-secondary" type="button" data-i18n="reset">リセット</button>
         </div>
-
         <div id="importStatus" class="status-text"></div>
       </details>
     </section>
 
-    <!-- ゾーン設定 -->
     <section class="card">
       <h2 data-i18n="zone_section">ゾーン設定</h2>
       <div class="zone-tabs" id="zoneTabs">
@@ -68,76 +75,96 @@
         <button class="zone-tab danger" type="button" data-zone="trusted" data-i18n="zone_trusted">trusted</button>
       </div>
       <input type="hidden" id="zoneInput" value="public" />
+  <div class="options">
+    <label class="option-line">
+      <input type="checkbox" id="permanent" checked />
+      <span data-i18n="opt_permanent">--permanent を付与する</span>
+    </label>
+    <label class="option-line">
+      <input type="checkbox" id="reload" checked />
+      <span data-i18n="opt_reload">最後に firewall-cmd --reload を追加する</span>
+    </label>
+  </div>
+</section>
 
-      <div class="options">
-        <label class="option-line">
-          <input type="checkbox" id="permanent" checked />
-          <span data-i18n="opt_permanent">--permanent を付与する</span>
-        </label>
-        <label class="option-line">
-          <input type="checkbox" id="reload" checked />
-          <span data-i18n="opt_reload">最後に firewall-cmd --reload を追加する</span>
-        </label>
-        <label class="option-line">
-          <input type="checkbox" id="ipv6" />
-          <span data-i18n="opt_ipv6">IPv6 を利用する前提にする（コメントのみ追加）</span>
-        </label>
+    <section class="card">
+      <h2 data-i18n="server_roles_title"></h2>
+      <p class="hint" data-i18n="server_roles_description"></p>
+      <div id="rolesContainer" class="feature-grid">
+        <div class="feature-block">
+          <div class="feature-header">
+            <label class="toggle-line">
+              <input type="checkbox" id="httpsIpv4Enabled" />
+              <span data-i18n="web_https_ipv4">Web（HTTPS - IPv4）</span>
+            </label>
+          </div>
+          <div class="feature-body">
+            <label class="allowlist-label" for="httpsIpv4AllowedIPs" data-i18n="web_https_ipv4_note">許可IP（IPv4 のみ / 1行1件）</label>
+            <textarea
+              id="httpsIpv4AllowedIPs"
+              class="allowlist-textarea"
+              placeholder="203.0.113.10&#10;198.51.100.0/24"></textarea>
+          </div>
+        </div>
+        <div class="feature-block">
+          <div class="feature-header">
+            <label class="toggle-line">
+              <input type="checkbox" id="httpsIpv6Enabled" />
+              <span data-i18n="web_https_ipv6">Web（HTTPS - IPv6）</span>
+            </label>
+          </div>
+          <div class="feature-body">
+            <label class="allowlist-label" for="httpsIpv6AllowedIPs" data-i18n="web_https_ipv6_note">許可IP（IPv6 のみ / 空欄なら全開放）</label>
+            <textarea
+              id="httpsIpv6AllowedIPs"
+              class="allowlist-textarea"
+              placeholder="2001:db8::/32"></textarea>
+          </div>
+        </div>
+        <div class="feature-block">
+          <div class="feature-header">
+            <label class="toggle-line">
+              <input type="checkbox" id="sshEnabled" />
+              <span data-i18n="ssh_title">SSH</span>
+            </label>
+          </div>
+          <div class="feature-body">
+            <label class="allowlist-label" for="sshAllowedIPs" data-i18n="ssh_note">許可IP（1行1件）</label>
+            <textarea
+              id="sshAllowedIPs"
+              class="allowlist-textarea"
+              placeholder="203.0.113.10"></textarea>
+          </div>
+        </div>
       </div>
     </section>
 
-    <!-- ロール（Web / SSH） -->
     <section class="card">
-      <h2 data-i18n="roles_section">サーバの役割</h2>
-      <p class="hint" data-i18n="roles_hint">
-        ポート番号は必要に応じて変更できます。チェックを入れた行のポートが有効になります。
-      </p>
-      <div id="rolesContainer"></div>
+      <h2 data-i18n="advanced_settings_title"></h2>
+      <div class="custom-port-header">
+        <div>
+          <div class="allowlist-label" data-i18n="advanced_settings_portopen_title"></div>
+          <p class="hint" data-i18n="advanced_settings_portopen_description"></p>
+        </div>
+        <button id="addCustomPortBtn" class="btn-secondary" type="button" data-i18n="add_custom_port"></button>
+      </div>
+      <div id="customPortsList" class="custom-port-list"></div>
     </section>
 
-    <!-- カスタムポート -->
-    <section class="card">
-      <h2 data-i18n="detail_section">詳細設定</h2>
-      <label for="customPorts" data-i18n="custom_ports_label">追加ポート</label>
-      <textarea
-        id="customPorts"
-        data-i18n-placeholder="custom_ports_placeholder"
-        placeholder="1 行につき 1 ポートを記述します。
-例：
-  8080
-  3000/tcp
-  53/udp
-プロトコルを省略した場合は自動で「/tcp」が付きます。"
-      ></textarea>
-    </section>
-
-    <!-- 出力 -->
     <section class="card">
       <h2 data-i18n="output_section">出力コマンド</h2>
       <textarea
         id="output"
         readonly
         data-i18n-placeholder="output_placeholder"
-        placeholder="# ここに生成された firewall-cmd のコマンドが表示されます。"
-      ></textarea>
-
+        placeholder="# ここに生成された firewall-cmd のコマンドが表示されます"></textarea>
       <div class="actions">
-        <button id="generateBtn" class="btn-primary" type="button" data-i18n="generate">
-          生成する
-        </button>
-        <button id="copyBtn" class="btn-secondary" type="button" data-i18n="copy">
-          コピー
-        </button>
-        <button id="clearAllBtn" class="btn-secondary" type="button" data-i18n="reset">
-          リセット
-        </button>
-        <button id="downloadBtn" class="btn-secondary" type="button" data-i18n="download">
-          ダウンロード
-        </button>
-        <button id="uploadBtn" class="btn-secondary" type="button" data-i18n="upload">
-          アップロード
-        </button>
+        <button id="generateBtn" class="btn-primary" type="button" data-i18n="generate">生成する</button>
+        <button id="copyBtn" class="btn-secondary" type="button" data-i18n="copy">コピー</button>
+        <button id="clearAllBtn" class="btn-secondary" type="button" data-i18n="reset">リセット</button>
+        <button id="downloadBtn" class="btn-secondary" type="button" data-i18n="download">ダウンロード</button>
+        <button id="uploadBtn" class="btn-secondary" type="button" data-i18n="upload">アップロード</button>
       </div>
-
       <input id="uploadInput" type="file" accept="application/json" style="display:none" />
       <div class="status-row">
         <span id="uploadFileName" class="status-text"></span>
@@ -146,22 +173,15 @@
     </section>
   </main>
 
-
-<div id="downloadModal" class="modal hidden">
-  <div class="modal-content">
-    <h3 data-i18n="download_title">保存するファイル名</h3>
-    <input type="text" id="downloadFilename" value="my-firewall.json" />
-
-    <div class="modal-actions">
-      <button id="modalCancel" class="btn-secondary" type="button" data-i18n="cancel">
-        キャンセル
-      </button>
-      <button id="modalSave" class="btn-primary" type="button" data-i18n="save">
-        保存
-      </button>
+  <div id="downloadModal" class="modal hidden">
+    <div class="modal-content">
+      <h3 data-i18n="download_title">保存するファイル名</h3>
+      <input type="text" id="downloadFilename" value="my-firewall.json" />
+      <div class="modal-actions">
+        <button id="modalCancel" class="btn-secondary" type="button" data-i18n="cancel">キャンセル</button>
+        <button id="modalSave" class="btn-primary" type="button" data-i18n="save">保存</button>
+      </div>
     </div>
   </div>
-</div>
-
 </body>
 </html>
