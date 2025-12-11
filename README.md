@@ -1,25 +1,32 @@
 # firewall-cmd-generator
 
-A web-based interactive generator for **firewall-cmd** rules.
+A lightweight interactive generator for `firewall-cmd` rules.  
+Designed to create clean HTTPS/SSH rules and custom ports with minimal steps.
 
----
-
-## 🌐 Live Demo  
+🔗 Live Demo  
 https://mati0516.github.io/firewall-cmd-generator/
 
 ---
 
-## 🚀 Features
-
-- Service presets (HTTP / HTTPS / SSH / etc.)
-- Custom port configuration
-- IP allowlist (rich-rule auto generation)
-- JSON import / export
-- Command generation
-- Dark mode (auto + manual toggle)
-- Multilingual UI support
+## Features
+- HTTPS (IPv4 / IPv6) allowlist configuration  
+- SSH allowlist (IPv4)  
+- Custom port rules with protocol + optional IP restrictions  
+- Auto-generated rich-rules  
+- Import from `firewall-cmd --list-all`  
+- JSON export / import  
+- Dark mode  
+- Full multilingual UI
 
 ---
 
-## 🔬 Experimental Analysis Feature  
-A prototype “analysis” function has been added, but it is still in an early experimental stage and most of its behavior is not fully implemented yet.
+## Experimental
+An early-stage rule analysis module is included.
+
+---
+
+## Development
+Open `index.html` directly or serve locally:
+
+```bash
+npx serve .
